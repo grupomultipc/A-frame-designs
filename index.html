@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cabañas Alpinas · Calculadora de costos y rentabilidad</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root{
+    --pine-950:#101E17;
+    --pine-800:#1F3329;
+    --pine-700:#2B4638;
+    --wood-700:#6B4423;
+    --wood-500:#8B5E34;
+    --wood-300:#B98F5E;
+    --stone-300:#CCC6B9;
+    --stone-100:#E7E3D8;
+    --snow-50:#F7F5EF;
+    --amber-500:#C97C2B;
+    --amber-600:#A8631E;
+    --alert-600:#B23A2E;
+    --alert-100:#F5DEDB;
+    --success-700:#33513E;
+    --success-100:#DCE8DF;
+    --ink:#20241F;
+    --radius-card:10px;
+    --radius-pill:999px;
+    font-size:16px;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    background:var(--snow-50);
+    color:var(--ink);
+    font-family:-apple-system, "Segoe UI", system-ui, sans-serif;
+    line-height:1.45;
+  }
+
+  h1,h2,h3{
+    font-family:Georgia, "Iowan Old Style", "Times New Roman", serif;
+    font-weight:600;
+    margin:0;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    background:linear-gradient(180deg, var(--pine-950) 0%, var(--pine-800) 100%);
+    color:var(--snow-50);
+    overflow:hidden;
+    padding:2.6rem 1.5rem 3.4rem;
+  }
+  .hero-inner{
+    max-width:1180px;
+    margin:0 auto;
+    position:relative;
+    z-index:2;
+  }
+  .hero h1{
+    font-size:clamp(1.8rem, 3.4vw, 2.6rem);
+    max-width:24ch;
+    letter-spacing:0.2px;
+  }
+  .hero p{
+    max-width:60ch;
+    color:var(--stone-100);
+    margin-top:0.9rem;
+    font-size:1rem;
+  }
+  .hero-tags{
+    margin-top:1.4rem;
+    display:flex;
+    gap:0.7rem;
+    flex-wrap:wrap;
+  }
+  .hero-tag{
+    border:1px solid rgba(247,245,239,0.35);
+    border-radius:var(--radius-pill);
+    padding:0.35rem 0.9rem;
+    font-size:0.85rem;
+    color:var(--snow-50);
+  }
+  .hero-tag strong{ color:var(--amber-500); font-weight:700; }
+
+  .mountains{
+    position:absolute;
+    left:0; right:0; bottom:-2px;
+    height:150px;
+    z-index:1;
+  }
+
+  /* ---------- LAYOUT ---------- */
+  .wrap{
+    max-width:1180px;
+    margin:-2.2rem auto 0;
+    padding:0 1.5rem 4rem;
+    position:relative;
+    z-index:3;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:minmax(320px, 420px) 1fr;
+    gap:1.4rem;
+    align-items:start;
+  }
+
+  .card{
+    background:#fff;
+    border:1px solid var(--stone-100);
+    border-radius:var(--radius-card);
+    padding:1.5rem;
+    box-shadow:0 1px 2px rgba(16,30,23,0.05);
+  }
+
+  .card h2{
+    font-size:1.15rem;
+    color:var(--pine-800);
+    margin-bottom:0.2rem;
+  }
+  .card .sub{
+    font-size:0.85rem;
+    color:#6b6a63;
+    margin-bottom:1.1rem;
+  }
+
+  /* ---------- FORM ---------- */
+  label{
+    display:block;
+    font-size:0.83rem;
+    color:#4c4b45;
+    margin-bottom:0.3rem;
+  }
+  input[type=number], input[type=text]{
+    width:100%;
+    border:1px solid var(--stone-300);
+    border-radius:6px;
+    padding:0.5rem 0.6rem;
+    font-size:0.95rem;
+    font-family:inherit;
+    background:var(--snow-50);
+    color:var(--ink);
+  }
+  input:focus{
+    outline:2px solid var(--amber-500);
+    outline-offset:1px;
+    background:#fff;
+  }
+
+  .field{ margin-bottom:0.95rem; }
+  .field-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:0.8rem;
+  }
+
+  .section-title{
+    font-size:0.78rem;
+    text-transform:none;
+    color:var(--wood-700);
+    font-weight:700;
+    margin:1.4rem 0 0.6rem;
+    padding-top:1.1rem;
+    border-top:1px solid var(--stone-100);
+  }
+  .section-title:first-of-type{ border-top:none; padding-top:0; margin-top:0; }
+
+  .material-row{
+    display:grid;
+    grid-template-columns:1fr 130px 34px;
+    gap:0.5rem;
+    align-items:center;
+    margin-bottom:0.55rem;
+  }
+  .material-row input[type=text]{ font-size:0.9rem; }
+  .material-row input[type=number]{ font-size:0.9rem; text-align:right; }
+
+  .icon-btn{
+    width:32px; height:32px;
+    border-radius:6px;
+    border:1px solid var(--stone-300);
+    background:#fff;
+    color:var(--alert-600);
+    cursor:pointer;
+    font-size:1rem;
+    line-height:1;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .icon-btn:hover{ background:var(--alert-100); }
+
+  .add-material{
+    margin-top:0.3rem;
+    border:1px dashed var(--wood-300);
+    background:transparent;
+    color:var(--wood-700);
+    padding:0.5rem 0.9rem;
+    border-radius:var(--radius-pill);
+    font-size:0.85rem;
+    cursor:pointer;
+    width:100%;
+  }
+  .add-material:hover{ background:var(--stone-100); }
+
+  .materials-total{
+    display:flex;
+    justify-content:space-between;
+    font-size:0.9rem;
+    color:var(--pine-800);
+    font-weight:700;
+    margin-top:0.5rem;
+    padding-top:0.6rem;
+    border-top:1px solid var(--stone-100);
+  }
+
+  /* ---------- RESULTS COLUMN ---------- */
+  .results-top{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:1rem;
+  }
+  .kpi{
+    background:#fff;
+    border:1px solid var(--stone-100);
+    border-radius:var(--radius-card);
+    padding:1.1rem 1.2rem;
+  }
+  .kpi .label{
+    font-size:0.78rem;
+    color:#6b6a63;
+    margin-bottom:0.35rem;
+  }
+  .kpi .value{
+    font-size:1.5rem;
+    font-weight:700;
+    color:var(--pine-800);
+    font-variant-numeric:tabular-nums;
+  }
+  .kpi .value.alert{ color:var(--alert-600); }
+  .kpi .value.ok{ color:var(--success-700); }
+  .kpi .note{
+    font-size:0.78rem;
+    color:#847f74;
+    margin-top:0.2rem;
+  }
+
+  .limit-card{
+    grid-column:1 / -1;
+    background:#fff;
+    border:1px solid var(--stone-100);
+    border-radius:var(--radius-card);
+    padding:1.2rem 1.4rem;
+    margin-top:1rem;
+  }
+  .limit-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:0.6rem;
+    flex-wrap:wrap;
+    gap:0.4rem;
+  }
+  .limit-head h3{ font-size:1rem; color:var(--pine-800); }
+  .badge{
+    font-size:0.78rem;
+    font-weight:700;
+    padding:0.25rem 0.7rem;
+    border-radius:var(--radius-pill);
+  }
+  .badge.ok{ background:var(--success-100); color:var(--success-700); }
+  .badge.bad{ background:var(--alert-100); color:var(--alert-600); }
+
+  .bar-track{
+    height:14px;
+    border-radius:var(--radius-pill);
+    background:var(--stone-100);
+    overflow:hidden;
+    position:relative;
+  }
+  .bar-fill{
+    height:100%;
+    border-radius:var(--radius-pill);
+    background:var(--success-700);
+    transition:width 0.35s ease, background 0.35s ease;
+  }
+  .bar-fill.bad{ background:var(--alert-600); }
+  .bar-caption{
+    display:flex;
+    justify-content:space-between;
+    font-size:0.78rem;
+    color:#6b6a63;
+    margin-top:0.4rem;
+  }
+
+  .chart-card{
+    margin-top:1.4rem;
+  }
+  .chart-card canvas{ max-height:320px; }
+
+  .years-controls{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:0.8rem;
+    margin-bottom:1rem;
+  }
+
+  table.proj-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:1rem;
+    font-size:0.85rem;
+  }
+  table.proj-table th, table.proj-table td{
+    text-align:right;
+    padding:0.45rem 0.6rem;
+    border-bottom:1px solid var(--stone-100);
+    font-variant-numeric:tabular-nums;
+  }
+  table.proj-table th:first-child, table.proj-table td:first-child{
+    text-align:left;
+  }
+  table.proj-table thead th{
+    color:var(--wood-700);
+    font-weight:700;
+    font-size:0.78rem;
+  }
+
+  @media (max-width: 880px){
+    .grid{ grid-template-columns:1fr; }
+    .results-top{ grid-template-columns:repeat(2, 1fr); }
+    .years-controls{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <svg class="mountains" viewBox="0 0 1200 150" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="0,150 0,90 160,20 260,80 360,10 480,90 600,40 760,110 900,50 1020,100 1120,60 1200,95 1200,150" fill="#2B4638"/>
+    <polygon points="0,150 0,120 140,60 230,100 330,55 460,110 590,75 730,130 860,90 980,125 1100,95 1200,120 1200,150" fill="#1F3329" opacity="0.9"/>
+    <polygon points="160,20 190,45 130,45" fill="#F7F5EF" opacity="0.8"/>
+    <polygon points="360,10 392,38 328,38" fill="#F7F5EF" opacity="0.8"/>
+    <polygon points="900,50 928,74 872,74" fill="#F7F5EF" opacity="0.7"/>
+  </svg>
+  <div class="hero-inner">
+    <h1>Cabañas alpinas: costo de fabricación y rentabilidad</h1>
+    <p>Ingresa el costo de tus materiales y observa al instante si tu cabaña se mantiene dentro del presupuesto de fabricación, cuánto ganas por unidad y cómo crece esa ganancia a lo largo de los años.</p>
+    <div class="hero-tags">
+      <span class="hero-tag">Precio de venta objetivo: <strong>Q 25,000</strong></span>
+      <span class="hero-tag">Límite de fabricación: <strong>Q 15,000</strong></span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="grid">
+
+    <!-- ===================== INPUT PANEL ===================== -->
+    <div class="card">
+      <h2>Datos de la cabaña</h2>
+      <div class="sub">Todos los cálculos se actualizan mientras escribes.</div>
+
+      <div class="section-title">Materiales</div>
+      <div id="materials-list"></div>
+      <button class="add-material" id="add-material">+ Agregar material</button>
+      <div class="materials-total">
+        <span>Subtotal materiales</span>
+        <span id="materials-total-value">Q 0</span>
+      </div>
+
+      <div class="section-title">Otros costos de fabricación</div>
+      <div class="field-row">
+        <div class="field">
+          <label for="mano-obra">Mano de obra (Q)</label>
+          <input type="number" id="mano-obra" value="4500" min="0" step="50">
+        </div>
+        <div class="field">
+          <label for="otros-costos">Otros costos: transporte, permisos (Q)</label>
+          <input type="number" id="otros-costos" value="1200" min="0" step="50">
+        </div>
+      </div>
+
+      <div class="section-title">Precio y límite</div>
+      <div class="field-row">
+        <div class="field">
+          <label for="precio-venta">Precio de venta (Q)</label>
+          <input type="number" id="precio-venta" value="25000" min="0" step="100">
+        </div>
+        <div class="field">
+          <label for="limite-costo">Límite de costo (Q)</label>
+          <input type="number" id="limite-costo" value="15000" min="0" step="100">
+        </div>
+      </div>
+
+      <div class="section-title">Tiempos</div>
+      <div class="field-row">
+        <div class="field">
+          <label for="tiempo-fabricacion">Tiempo de fabricación (días)</label>
+          <input type="number" id="tiempo-fabricacion" value="18" min="0" step="1">
+        </div>
+        <div class="field">
+          <label for="tiempo-venta">Tiempo estimado de venta (días)</label>
+          <input type="number" id="tiempo-venta" value="30" min="0" step="1">
+        </div>
+      </div>
+
+      <div class="section-title">Proyección de ventas</div>
+      <div class="field-row">
+        <div class="field">
+          <label for="unidades-anio">Cabañas vendidas por año</label>
+          <input type="number" id="unidades-anio" value="6" min="0" step="1">
+        </div>
+        <div class="field">
+          <label for="crecimiento-anual">Crecimiento anual en ventas (%)</label>
+          <input type="number" id="crecimiento-anual" value="10" step="1">
+        </div>
+      </div>
+      <div class="field">
+        <label for="anios-proyeccion">Años a proyectar</label>
+        <input type="number" id="anios-proyeccion" value="2" min="1" step="1">
+      </div>
+    </div>
+
+    <!-- ===================== RESULTS ===================== -->
+    <div>
+      <div class="results-top">
+        <div class="kpi">
+          <div class="label">Costo total de fabricación</div>
+          <div class="value" id="kpi-costo-total">Q 0</div>
+          <div class="note">Materiales + mano de obra + otros</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Ganancia neta por cabaña</div>
+          <div class="value" id="kpi-ganancia">Q 0</div>
+          <div class="note" id="kpi-margen-nota">Margen sobre el precio de venta</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Ciclo completo</div>
+          <div class="value" id="kpi-ciclo">0 días</div>
+          <div class="note">Fabricación + venta</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Margen sobre venta</div>
+          <div class="value" id="kpi-margen-pct">0%</div>
+          <div class="note">Ganancia / precio de venta</div>
+        </div>
+
+        <div class="limit-card">
+          <div class="limit-head">
+            <h3>Costo de fabricación vs. límite de Q 15,000</h3>
+            <span class="badge ok" id="limit-badge">Dentro del límite</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" id="limit-bar" style="width:0%"></div>
+          </div>
+          <div class="bar-caption">
+            <span id="limit-caption-left">Q 0 usados</span>
+            <span id="limit-caption-right">Límite: Q 15,000</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card chart-card">
+        <h2>Tiempos de fabricación y venta</h2>
+        <div class="sub">Días que toma construir la cabaña frente a los días estimados para venderla.</div>
+        <canvas id="chart-tiempos"></canvas>
+      </div>
+
+      <div class="card chart-card">
+        <h2>Composición del precio de venta</h2>
+        <div class="sub">Cómo se reparten los Q 25,000 entre materiales, mano de obra, otros costos y ganancia.</div>
+        <canvas id="chart-composicion"></canvas>
+      </div>
+
+      <div class="card chart-card">
+        <h2>Proyección de ganancias por año</h2>
+        <div class="sub">Ingresos, costos y ganancia neta estimados para cada año, con el crecimiento en ventas que definas arriba.</div>
+        <canvas id="chart-proyeccion"></canvas>
+        <table class="proj-table" id="proj-table">
+          <thead>
+            <tr>
+              <th>Año</th>
+              <th>Cabañas vendidas</th>
+              <th>Ingresos</th>
+              <th>Costos</th>
+              <th>Ganancia neta</th>
+              <th>Ganancia acumulada</th>
+            </tr>
+          </thead>
+          <tbody id="proj-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ---------- helpers ----------
+  const fmtQ = n => 'Q ' + Math.round(n).toLocaleString('es-GT');
+  const fmtPct = n => (Math.round(n * 10) / 10) + '%';
+  const $ = id => document.getElementById(id);
+
+  // ---------- state ----------
+  let materials = [
+    { name: 'Madera de pino tratada', cost: 4200 },
+    { name: 'Techo y aislamiento', cost: 2100 },
+    { name: 'Ventanas y puertas', cost: 1800 },
+    { name: 'Herrajes y tornillería', cost: 650 }
+  ];
+
+  const materialsList = $('materials-list');
+
+  function renderMaterials(){
+    materialsList.innerHTML = '';
+    materials.forEach((m, i) => {
+      const row = document.createElement('div');
+      row.className = 'material-row';
+      row.innerHTML = `
+        <input type="text" data-idx="${i}" class="mat-name" value="${m.name}">
+        <input type="number" data-idx="${i}" class="mat-cost" value="${m.cost}" min="0" step="10">
+        <button class="icon-btn" data-idx="${i}" title="Eliminar material">✕</button>
+      `;
+      materialsList.appendChild(row);
+    });
+
+    materialsList.querySelectorAll('.mat-name').forEach(el => {
+      el.addEventListener('input', e => {
+        materials[e.target.dataset.idx].name = e.target.value;
+        update();
+      });
+    });
+    materialsList.querySelectorAll('.mat-cost').forEach(el => {
+      el.addEventListener('input', e => {
+        materials[e.target.dataset.idx].cost = parseFloat(e.target.value) || 0;
+        update();
+      });
+    });
+    materialsList.querySelectorAll('.icon-btn').forEach(el => {
+      el.addEventListener('click', e => {
+        materials.splice(e.currentTarget.dataset.idx, 1);
+        renderMaterials();
+        update();
+      });
+    });
+  }
+
+  $('add-material').addEventListener('click', () => {
+    materials.push({ name: 'Nuevo material', cost: 0 });
+    renderMaterials();
+    update();
+  });
+
+  // ---------- charts ----------
+  const chartTiempos = new Chart($('chart-tiempos'), {
+    type: 'bar',
+    data: {
+      labels: ['Tiempo de fabricación', 'Tiempo de venta'],
+      datasets: [{
+        label: 'Días',
+        data: [0, 0],
+        backgroundColor: ['#8B5E34', '#C97C2B'],
+        borderRadius: 6,
+        maxBarThickness: 60
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { x: { beginAtZero: true, title: { display: true, text: 'Días' } } }
+    }
+  });
+
+  const chartComposicion = new Chart($('chart-composicion'), {
+    type: 'bar',
+    data: {
+      labels: ['Precio de venta (Q 25,000)'],
+      datasets: [
+        { label: 'Materiales', data: [0], backgroundColor: '#8B5E34', stack: 's' },
+        { label: 'Mano de obra', data: [0], backgroundColor: '#B98F5E', stack: 's' },
+        { label: 'Otros costos', data: [0], backgroundColor: '#CCC6B9', stack: 's' },
+        { label: 'Ganancia neta', data: [0], backgroundColor: '#2B4638', stack: 's' }
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } },
+      scales: {
+        x: { stacked: true, beginAtZero: true, title: { display: true, text: 'Quetzales' } },
+        y: { stacked: true }
+      }
+    }
+  });
+
+  const chartProyeccion = new Chart($('chart-proyeccion'), {
+    data: {
+      labels: [],
+      datasets: [
+        { type: 'bar', label: 'Ingresos', data: [], backgroundColor: '#C97C2B', order: 2 },
+        { type: 'bar', label: 'Costos', data: [], backgroundColor: '#CCC6B9', order: 2 },
+        { type: 'bar', label: 'Ganancia neta', data: [], backgroundColor: '#2B4638', order: 2 },
+        { type: 'line', label: 'Ganancia acumulada', data: [], borderColor: '#B23A2E', backgroundColor: '#B23A2E', tension: 0.25, yAxisID: 'y1', order: 1 }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: 'Quetzales por año' } },
+        y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Ganancia acumulada' } }
+      }
+    }
+  });
+
+  // ---------- main calc ----------
+  function update(){
+    const materialsTotal = materials.reduce((s, m) => s + (m.cost || 0), 0);
+    const manoObra = parseFloat($('mano-obra').value) || 0;
+    const otros = parseFloat($('otros-costos').value) || 0;
+    const precioVenta = parseFloat($('precio-venta').value) || 0;
+    const limite = parseFloat($('limite-costo').value) || 0;
+    const tFab = parseFloat($('tiempo-fabricacion').value) || 0;
+    const tVenta = parseFloat($('tiempo-venta').value) || 0;
+    const unidadesAnio = parseFloat($('unidades-anio').value) || 0;
+    const crecimiento = parseFloat($('crecimiento-anual').value) || 0;
+    const anios = Math.max(1, parseInt($('anios-proyeccion').value) || 1);
+
+    const costoTotal = materialsTotal + manoObra + otros;
+    const ganancia = precioVenta - costoTotal;
+    const margenPct = precioVenta > 0 ? (ganancia / precioVenta) * 100 : 0;
+    const dentroLimite = costoTotal <= limite;
+
+    // materials subtotal
+    $('materials-total-value').textContent = fmtQ(materialsTotal);
+
+    // KPIs
+    $('kpi-costo-total').textContent = fmtQ(costoTotal);
+    $('kpi-costo-total').className = 'value ' + (dentroLimite ? 'ok' : 'alert');
+
+    $('kpi-ganancia').textContent = fmtQ(ganancia);
+    $('kpi-ganancia').className = 'value ' + (ganancia >= 0 ? 'ok' : 'alert');
+
+    $('kpi-ciclo').textContent = (tFab + tVenta) + ' días';
+    $('kpi-margen-pct').textContent = fmtPct(margenPct);
+    $('kpi-margen-pct').className = 'value ' + (margenPct >= 0 ? 'ok' : 'alert');
+
+    // limit bar
+    const pctOfLimit = limite > 0 ? Math.min(150, (costoTotal / limite) * 100) : 0;
+    const bar = $('limit-bar');
+    bar.style.width = Math.min(100, pctOfLimit) + '%';
+    bar.className = 'bar-fill' + (dentroLimite ? '' : ' bad');
+    $('limit-caption-left').textContent = fmtQ(costoTotal) + ' usados';
+    $('limit-caption-right').textContent = 'Límite: ' + fmtQ(limite);
+    const badge = $('limit-badge');
+    if (dentroLimite){
+      badge.textContent = 'Dentro del límite';
+      badge.className = 'badge ok';
+    } else {
+      badge.textContent = 'Excede el límite por ' + fmtQ(costoTotal - limite);
+      badge.className = 'badge bad';
+    }
+
+    // chart: tiempos
+    chartTiempos.data.datasets[0].data = [tFab, tVenta];
+    chartTiempos.update();
+
+    // chart: composicion
+    chartComposicion.data.datasets[0].data = [materialsTotal];
+    chartComposicion.data.datasets[1].data = [manoObra];
+    chartComposicion.data.datasets[2].data = [otros];
+    chartComposicion.data.datasets[3].data = [Math.max(0, ganancia)];
+    chartComposicion.update();
+
+    // projection
+    const labels = [];
+    const ingresosArr = [];
+    const costosArr = [];
+    const gananciaArr = [];
+    const acumuladaArr = [];
+    let acumulado = 0;
+    const tbody = $('proj-table-body');
+    tbody.innerHTML = '';
+
+    for (let i = 1; i <= anios; i++){
+      const unidades = unidadesAnio * Math.pow(1 + crecimiento / 100, i - 1);
+      const ingresos = unidades * precioVenta;
+      const costos = unidades * costoTotal;
+      const gananciaAnio = ingresos - costos;
+      acumulado += gananciaAnio;
+
+      labels.push('Año ' + i);
+      ingresosArr.push(Math.round(ingresos));
+      costosArr.push(Math.round(costos));
+      gananciaArr.push(Math.round(gananciaAnio));
+      acumuladaArr.push(Math.round(acumulado));
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>Año ${i}</td>
+        <td>${unidades.toFixed(1)}</td>
+        <td>${fmtQ(ingresos)}</td>
+        <td>${fmtQ(costos)}</td>
+        <td>${fmtQ(gananciaAnio)}</td>
+        <td>${fmtQ(acumulado)}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    chartProyeccion.data.labels = labels;
+    chartProyeccion.data.datasets[0].data = ingresosArr;
+    chartProyeccion.data.datasets[1].data = costosArr;
+    chartProyeccion.data.datasets[2].data = gananciaArr;
+    chartProyeccion.data.datasets[3].data = acumuladaArr;
+    chartProyeccion.update();
+  }
+
+  // ---------- wire up inputs ----------
+  ['mano-obra','otros-costos','precio-venta','limite-costo','tiempo-fabricacion',
+   'tiempo-venta','unidades-anio','crecimiento-anual','anios-proyeccion'].forEach(id => {
+    $(id).addEventListener('input', update);
+  });
+
+  renderMaterials();
+  update();
+</script>
+
+</body>
+</html>
